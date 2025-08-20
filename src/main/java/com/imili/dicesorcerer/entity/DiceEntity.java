@@ -1,14 +1,23 @@
 package com.imili.dicesorcerer.entity;
 
+import com.imili.dicesorcerer.DicesorcererMod;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
+import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -20,59 +29,28 @@ import software.bernie.geckolib.animatable.processing.AnimationTest;
 import software.bernie.geckolib.animation.Animation;
 import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
-import software.bernie.geckolib.animation.keyframe.event.KeyFrameEvent;
-import software.bernie.geckolib.animation.keyframe.event.data.CustomInstructionKeyframeData;
 
-public final class DiceEntity extends Entity implements GeoEntity {
+public final class DiceEntity extends ThrowableItemProjectile implements GeoEntity {
     private static final String ANIMATION_ID = "dice.model.dicing";
     public static final String ENTITY_ID = "dice";
     private final AnimatableInstanceCache cache = new SingletonAnimatableInstanceCache(this);
-    private boolean isDicing = false;
-    private boolean playedAnimation = false;
 
-    public DiceEntity(EntityType<?> entityType, Level level) {
+    public DiceEntity(EntityType<DiceEntity> entityType, Level level) {
         super(entityType, level);
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
-
-    }
-
-    @Override
-    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource damageSource, float amount) {
-        return false;
-    }
-
-    @Override
-    protected void readAdditionalSaveData(@NotNull ValueInput input) {
-
-    }
-
-    @Override
-    protected void addAdditionalSaveData(@NotNull ValueOutput output) {
-
+    protected @NotNull Item getDefaultItem() {
+        return DicesorcererMod.DICE_ITEM.asItem();
     }
 
     @Override
     public void registerControllers(AnimatableManager.@NotNull ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(DiceEntity.ENTITY_ID, 0, this::handle)
-                .setCustomInstructionKeyframeHandler(this::handleKeyframes));
+        controllers.add(new AnimationController<>(DiceEntity.ENTITY_ID, 0, this::handle));
     }
 
-    private void handleKeyframes(@NotNull KeyFrameEvent<GeoAnimatable, CustomInstructionKeyframeData> event) {
-        if (event.controller().getAnimationState() == AnimationController.State.STOPPED) {
-            System.out.println("hah");
-        }
-    }
-
-    private PlayState handle(AnimationTest<GeoAnimatable> animatable) {
-        if (isDicing && !playedAnimation) {
-            animatable.setAnimation(RawAnimation.begin().then(DiceEntity.ANIMATION_ID, Animation.LoopType.PLAY_ONCE));
-            playedAnimation = true;
-        } else if (!isDicing && playedAnimation) {
-            playedAnimation = false;
-        }
+    private PlayState handle(@NotNull AnimationTest<GeoAnimatable> animatable) {
+        animatable.setAnimation(RawAnimation.begin().then(DiceEntity.ANIMATION_ID, Animation.LoopType.PLAY_ONCE));
         return PlayState.CONTINUE;
     }
 
@@ -81,7 +59,8 @@ public final class DiceEntity extends Entity implements GeoEntity {
         return cache;
     }
 
-    public void setDicing() {
-        this.isDicing = true;
+    @Override
+    protected @NotNull AABB makeBoundingBox(@NotNull Vec3 position) {
+        return super.makeBoundingBox(position).move(-0.06, -0.01, -0.06);
     }
 }

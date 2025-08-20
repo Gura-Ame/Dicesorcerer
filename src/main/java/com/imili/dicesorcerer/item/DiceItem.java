@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public final class DiceItem extends Item {
@@ -18,14 +19,20 @@ public final class DiceItem extends Item {
     }
 
     @Override
-    public @NotNull InteractionResult useOn(@NotNull UseOnContext context) {
-        Level level = context.getLevel();
+    public @NotNull InteractionResult use(Level level, @NotNull Player player, @NotNull InteractionHand hand) {
         if (!level.isClientSide()) {
             DiceEntity dice = new DiceEntity(DicesorcererMod.DICE_ENTITY.get(), level);
-            dice.setPos(context.getClickedPos().getCenter());
+            // 設定起始位置（稍微離玩家眼睛前方一點，避免和玩家重疊）
+            Vec3 look = player.getLookAngle();
+            Vec3 pos = player.position().add(0, player.getEyeHeight(), 0).add(look.scale(0.5));
+            dice.setPos(pos.x, pos.y, pos.z);
+
             level.addFreshEntity(dice);
-            dice.setDicing();
+
+            // 設定初速度
+            double power = 0.6; // 可調整拋出速度
+            dice.setDeltaMovement(look.scale(power));
         }
-        return super.useOn(context);
+        return super.use(level, player, hand);
     }
 }

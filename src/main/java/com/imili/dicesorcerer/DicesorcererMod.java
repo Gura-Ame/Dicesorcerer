@@ -43,48 +43,9 @@ public class DicesorcererMod {
             DeferredRegister.createEntities(DicesorcererMod.MOD_ID);
     public static final Supplier<EntityType<DiceEntity>> DICE_ENTITY = DicesorcererMod.ENTITY_TYPES.register(
             DiceEntity.ENTITY_ID,
-            // The entity type, created using a builder.
-            () -> EntityType.Builder.of(
-                            // An EntityType.EntityFactory<T>, where T is the entity class used - MyEntity in this case.
-                            // You can think of it as a BiFunction<EntityType<T>, Level, T>.
-                            // This is commonly a reference to the entity constructor.
-                            DiceEntity::new,
-                            // The MobCategory our entity uses. This is mainly relevant for spawning.
-                            // See below for more information.
-                            MobCategory.MISC
-                    )
-                    // The width and height, in blocks. The width is used in both horizontal directions.
-                    // This also means that non-square footprints are not supported. Default is 0.6f and 1.8f.
-                    .sized(1.0f, 1.0f)
-                    // A multiplicative factor (scalar) used by mobs that spawn in varying sizes.
-                    // In vanilla, these are only slimes and magma cubes, both of which use 4.0f.
-                    .spawnDimensionsScale(4.0f)
-                    // The eye height, in blocks from the bottom of the size. Defaults to height * 0.85.
-                    // This must be called after #sized to have an effect.
-                    .eyeHeight(0.5f)
-                    // Disables the entity being summonable via /summon.
-                    .noSummon()
-                    // Prevents the entity from being saved to disk.
-                    .noSave()
-                    // Makes the entity fire immune.
-                    .fireImmune()
-                    // Makes the entity immune to damage from a certain block. Vanilla uses this to make
-                    // foxes immune to sweet berry bushes, withers and wither skeletons immune to wither roses,
-                    // and polar bears, snow golems and strays immune to powder snow.
-                    .immuneTo(Blocks.POWDER_SNOW)
-                    // Disables a rule in the spawn handler that limits the distance at which entities can spawn.
-                    // This means that no matter the distance to the player, this entity can spawn.
-                    // Vanilla enables this for pillagers and shulkers.
+            () -> EntityType.Builder.of(DiceEntity::new, MobCategory.MISC)
+                    .sized(0.3f, 0.3f)
                     .canSpawnFarFromPlayer()
-                    // The range in which the entity is kept loaded by the client, in chunks.
-                    // Vanilla values for this vary, but it's often something around 8 or 10. Defaults to 5.
-                    // Be aware that if this is greater than the client's chunk view distance,
-                    // then that chunk view distance is effectively used here instead.
-                    .clientTrackingRange(8)
-                    // How often update packets are sent for this entity, in once every x ticks. This is set to higher values
-                    // for entities that have predictable movement patterns, for example projectiles. Defaults to 3.
-                    .updateInterval(10)
-                    // Build the entity type using a resource key. The second parameter should be the same as the entity id.
                     .build(ResourceKey.create(
                             Registries.ENTITY_TYPE,
                             ResourceLocation.fromNamespaceAndPath(DicesorcererMod.MOD_ID, DiceEntity.ENTITY_ID)
